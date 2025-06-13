@@ -5,7 +5,7 @@ class DashboardService {
   async getMetrics(): Promise<{ success: boolean; data: DashboardMetrics | null }> {
     try {
       console.log('Fetching dashboard metrics...')
-      const response = await apiClient.get<any>('/admin/dashboard/metrics')
+      const response = await apiClient.get<unknown>('/admin/dashboard/metrics')
       console.log('Dashboard metrics response:', response)
       
       if (!response.data) {
@@ -56,7 +56,7 @@ class DashboardService {
   async getAgencyRevenue(): Promise<{ success: boolean; data: AgencyRevenue[] | null }> {
     try {
       console.log('Fetching agency revenue...')
-      const response = await apiClient.get<any[]>('/admin/dashboard/agencies/revenue')
+      const response = await apiClient.get<unknown[]>('/admin/dashboard/agencies/revenue')
       console.log('Agency revenue response:', response)
       
       if (!response.data) {

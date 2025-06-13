@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAgencies } from '@/hooks/useAgencies'
-import { CreateAgencyRequest, AgencySize, AgencyStatus } from '@/lib/types'
+import { CreateAgencyRequest } from '@/lib/types'
 import { toast } from 'react-hot-toast'
 
 export default function AddAgencyPage() {

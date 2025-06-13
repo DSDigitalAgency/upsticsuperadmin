@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts'
 import { DashboardMetrics } from '@/lib/types'
 
 interface MetricsChartProps {
@@ -26,7 +26,7 @@ export function UserActivityChart({ metrics }: MetricsChartProps) {
     }
   ]
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
@@ -88,7 +88,7 @@ export function UserRoleChart({ metrics }: MetricsChartProps) {
 
   const COLORS = ['#3B82F6', '#9CA3AF']
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
@@ -156,12 +156,12 @@ export function EngagementChart({ metrics }: MetricsChartProps) {
     }
   ]
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{label}</p>
+          <p className="font-medium text-gray-900">{data.metric}</p>
           <p style={{ color: data.payload.color }}>
             Value: {data.value}
           </p>

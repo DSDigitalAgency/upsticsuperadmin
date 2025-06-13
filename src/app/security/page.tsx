@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { securityService } from '@/lib/services/security.service'
 import { SecurityDashboard, SecurityEvent, SecuritySystem } from '@/lib/types'
 import { formatDistanceToNow } from 'date-fns'
-import { Shield, AlertTriangle, CheckCircle, Clock, Settings, Activity } from 'lucide-react'
+import { Shield, AlertTriangle, Clock, Settings, Activity } from 'lucide-react'
 
 export default function SecurityPage() {
   const { toast } = useToast()
@@ -20,7 +20,7 @@ export default function SecurityPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -45,11 +45,11 @@ export default function SecurityPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, [fetchData]);
 
   const handleCalculateScore = async () => {
     try {

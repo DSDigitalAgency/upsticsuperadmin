@@ -1,35 +1,29 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/components/ui/use-toast'
 import { dashboardService } from '@/lib/services/dashboard.service'
 import { DashboardMetrics, AgencyRevenue } from '@/lib/types'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { 
   Building2, 
   Users, 
   DollarSign, 
-  Briefcase, 
-  UserCircle, 
   Activity,
-  TrendingUp,
   AlertTriangle,
   CheckCircle,
   RefreshCw
 } from 'lucide-react'
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   BarChart,
-  Bar
+  Bar,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip
 } from 'recharts'
 
 export default function DashboardPage() {
@@ -39,7 +33,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -62,11 +56,11 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -75,19 +69,6 @@ export default function DashboardPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(amount)
-  }
-
-  const getSystemHealthColor = (status: DashboardMetrics['systemHealth']['status']) => {
-    switch (status) {
-      case 'healthy':
-        return 'text-green-500'
-      case 'warning':
-        return 'text-yellow-500'
-      case 'critical':
-        return 'text-red-500'
-      default:
-        return 'text-gray-500'
-    }
   }
 
   const getSystemHealthIcon = (status: DashboardMetrics['systemHealth']['status']) => {

@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Shield, Zap, RefreshCw, Database, Globe, 
-         Users, Bell, BarChart3, Smartphone, Palette,
-         Save, Edit, Plus, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { Settings, Shield, Zap, RefreshCw, Users, Save, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-hot-toast'

@@ -5,7 +5,6 @@ import {
   AgencyFilters, 
   CreateAgencyRequest, 
   UpdateAgencyRequest,
-  PaginatedResponse 
 } from '@/lib/types'
 import { agencyService } from '@/lib/services/agency.service'
 
@@ -99,7 +98,7 @@ export const useAgencies = () => {
     } finally {
       updateLoading('agencies', false)
     }
-  }, [updateLoading, updateError])
+  }, [state.filters, updateLoading, updateError])
 
   // Load agency statistics
   const loadStats = useCallback(async () => {
@@ -409,7 +408,7 @@ export const useAgencies = () => {
   useEffect(() => {
     loadAgencies()
     loadStats()
-  }, []) // Empty dependency array - only run on mount
+  }, [loadAgencies, loadStats])
 
   return {
     // State

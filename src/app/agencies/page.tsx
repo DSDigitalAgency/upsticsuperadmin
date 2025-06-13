@@ -7,22 +7,17 @@ import {
   CheckCircle,
   AlertCircle,
   Calendar,
-  MapPin,
-  Users,
-  Filter,
   Download,
   RefreshCw,
   MoreHorizontal,
   Ban,
   Eye,
   Edit,
-  Trash2,
   Plus,
   Search,
   DollarSign,
-  Mail,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -40,9 +35,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
 import { useAgencies } from '@/hooks/useAgencies'
-import { Agency, AgencyStatus, AgencyPlan, AgencySize, AgencyFilters } from '@/lib/types'
+import { AgencyStatus, AgencyPlan, AgencySize, AgencyFilters } from '@/lib/types'
 import {
   Table,
   TableBody,
@@ -65,58 +59,6 @@ function getStatusVariant(status: AgencyStatus) {
     default:
       return 'secondary'
   }
-}
-
-// Helper function to get plan variant
-function getPlanVariant(plan: AgencyPlan) {
-  switch (plan) {
-    case 'BASIC':
-      return 'secondary'
-    case 'PRO':
-      return 'default'
-    case 'ENTERPRISE':
-      return 'outline'
-    default:
-      return 'outline'
-  }
-}
-
-// Helper function to get agency initials
-function getAgencyInitials(name: string) {
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-// Helper function to get a deterministic color for an agency
-function getAgencyColor(name: string) {
-  const colors = [
-    'bg-blue-500',
-    'bg-green-500',
-    'bg-purple-500',
-    'bg-orange-500',
-    'bg-red-500',
-    'bg-pink-500',
-    'bg-indigo-500',
-  ]
-  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
-  return colors[index % colors.length]
-}
-
-// Helper function to format relative time
-function formatRelativeTime(date: string) {
-  const now = new Date()
-  const then = new Date(date)
-  const diffInSeconds = Math.floor((now.getTime() - then.getTime()) / 1000)
-  
-  if (diffInSeconds < 60) return 'just now'
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`
-  return `${Math.floor(diffInSeconds / 604800)} weeks ago`
 }
 
 // Error Boundary Component
@@ -144,134 +86,12 @@ function AgencyPageContent() {
   return <AgencyManagementContent />
 }
 
-function AgencyCard({ 
-  agency,
-  onSuspend,
-  onActivate,
-  onDelete,
-}: { 
-  agency: Agency
-  onSuspend: (id: string, reason?: string) => Promise<void>
-  onActivate: (id: string) => Promise<void>
-  onDelete: (id: string) => Promise<void>
-}) {
-  const router = useRouter()
-
-  const handleSuspendAgency = async (id: string) => {
-    if (confirm('Are you sure you want to suspend this agency?')) {
-      await onSuspend(id, 'Manual suspension by admin')
-    }
-  }
-
-  const handleActivateAgency = async (id: string) => {
-    await onActivate(id)
-  }
-
-  const handleDeleteAgency = async (id: string) => {
-    if (confirm('Are you sure you want to delete this agency? This action cannot be undone.')) {
-      await onDelete(id)
-    }
-  }
-
-  return (
-    <Card className="w-full">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">
-          <div className="flex items-center space-x-2">
-            <Building2 className="h-4 w-4" />
-            <span>{agency.name}</span>
-          </div>
-        </CardTitle>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => router.push(`/agencies/${agency._id}`)}>
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push(`/agencies/${agency._id}/edit`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Agency
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {agency.status === 'active' ? (
-              <DropdownMenuItem onClick={() => handleSuspendAgency(agency._id)}>
-                <Ban className="mr-2 h-4 w-4" />
-                Suspend Agency
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem onClick={() => handleActivateAgency(agency._id)}>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Activate Agency
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              onClick={() => handleDeleteAgency(agency._id)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Agency
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Status</p>
-              <Badge variant={getStatusVariant(agency.status)}>
-                {agency.status.charAt(0).toUpperCase() + agency.status.slice(1)}
-              </Badge>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Plan</p>
-              <Badge variant="outline">{agency.billing.plan}</Badge>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Size</p>
-              <p className="text-sm">{agency.size}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Industry</p>
-              <p className="text-sm">{agency.industry}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Users</p>
-              <p className="text-sm">{agency.metrics.userCount}</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-              <p className="text-sm">
-                {new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: agency.billing.currency,
-                }).format(agency.billing.amount)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 function AgencyManagementContent() {
   const router = useRouter()
   const {
     agencies,
     stats,
     loading,
-    error,
     filters,
     pagination,
     loadAgencies,
@@ -280,7 +100,6 @@ function AgencyManagementContent() {
     resetFilters,
     suspendAgency,
     activateAgency,
-    deleteAgency,
     exportAgencies,
   } = useAgencies()
 
@@ -324,11 +143,6 @@ function AgencyManagementContent() {
   const handleActivateAgency = async (id: string) => {
     await activateAgency(id)
     loadStats() // Refresh stats after activation
-  }
-
-  const handleDeleteAgency = async (id: string) => {
-    await deleteAgency(id)
-    loadStats() // Refresh stats after deletion
   }
 
   return (
@@ -525,15 +339,6 @@ function AgencyManagementContent() {
                   <div className="flex items-center justify-center space-x-2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                     <span className="text-muted-foreground">Loading agencies...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : error ? (
-              <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
-                  <div className="flex items-center justify-center space-x-2 text-red-600">
-                    <AlertCircle className="h-5 w-5" />
-                    <span>{error}</span>
                   </div>
                 </TableCell>
               </TableRow>

@@ -1,5 +1,5 @@
 import { apiClient } from '../api'
-import { User, AgencyUser, ApiResponse } from '../types'
+import { AgencyUser, ApiResponse } from '../types'
 
 class UserService {
   async getUsers(params?: {

@@ -33,7 +33,7 @@ export interface AgencyBilling {
   plan: AgencyPlan
   amount: number
   currency: string
-  invoices: any[] // TODO: Define invoice type
+  invoices: unknown[] // TODO: Define invoice type
 }
 
 export interface AgencyFeatures {
@@ -89,7 +89,7 @@ export interface Agency {
     plan: AgencyPlan
     amount: number
     currency: string
-    invoices: any[] // TODO: Define invoice type
+    invoices: unknown[] // TODO: Define invoice type
   }
   features: {
     enabledFeatures: string[]

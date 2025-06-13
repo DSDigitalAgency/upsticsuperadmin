@@ -5,7 +5,7 @@ import { ApiResponse } from './types'
 interface ErrorResponse {
   message?: string;
   status?: number;
-  data?: any;
+  data?: unknown;
 }
 
 class ApiClient {
@@ -91,7 +91,7 @@ class ApiClient {
     }
   }
 
-  async post<T>(url: string, data?: any, config?: Parameters<typeof axios.post>[2]): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: unknown, config?: Parameters<typeof axios.post>[2]): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.post<T>(url, data, config)
       return {
@@ -106,7 +106,7 @@ class ApiClient {
     }
   }
 
-  async put<T>(url: string, data?: any, config?: Parameters<typeof axios.put>[2]): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: unknown, config?: Parameters<typeof axios.put>[2]): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.put<T>(url, data, config)
       return {
@@ -121,7 +121,7 @@ class ApiClient {
     }
   }
 
-  async patch<T>(url: string, data?: any, config?: Parameters<typeof axios.patch>[2]): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: unknown, config?: Parameters<typeof axios.patch>[2]): Promise<ApiResponse<T>> {
     try {
       const response = await this.client.patch<T>(url, data, config)
       return {

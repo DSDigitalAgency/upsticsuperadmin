@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from 'recharts'
+import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts'
 import { AgencyRevenue } from '@/lib/types'
 
 interface RevenueChartProps {
@@ -17,7 +17,6 @@ export function RevenueChart({ revenueMetrics }: RevenueChartProps) {
   }
 
   // Calculate total revenue metrics
-  const totalRevenue = revenueMetrics.reduce((sum, agency) => sum + agency.totalRevenue, 0)
   const monthlyRevenue = revenueMetrics.reduce((sum, agency) => sum + agency.monthlyRevenue, 0)
   const quarterlyRevenue = monthlyRevenue * 3
   const yearlyRevenue = monthlyRevenue * 12
@@ -50,14 +49,14 @@ export function RevenueChart({ revenueMetrics }: RevenueChartProps) {
     }).format(value)
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{label} Revenue</p>
           <p className="text-blue-600">
-            {formatCurrency(data.value)}
+            {formatCurrency(data.value as number)}
           </p>
         </div>
       )
@@ -127,14 +126,14 @@ export function TopAgenciesChart({ revenueMetrics }: RevenueChartProps) {
     }).format(value)
   }
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       const data = payload[0]
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{label}</p>
           <p className="text-green-600">
-            Revenue: {formatCurrency(data.value)}
+            Revenue: {formatCurrency(data.value as number)}
           </p>
         </div>
       )

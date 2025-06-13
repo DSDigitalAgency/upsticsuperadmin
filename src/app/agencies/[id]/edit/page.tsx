@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAgencies } from '@/hooks/useAgencies'
-import { Agency, AgencyStatus } from '@/lib/types'
+import { UpdateAgencyRequest, AgencySize } from '@/lib/types'
+
+type FormValue = string | number | boolean | undefined;
 
 function EditAgencyContent({ id }: { id: string }) {
   const router = useRouter()
@@ -18,14 +20,62 @@ function EditAgencyContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [formData, setFormData] = useState<Partial<Agency>>({})
+  const [formData, setFormData] = useState<UpdateAgencyRequest>({
+    name: '',
+    description: '',
+    industry: '',
+    size: 'SMALL' as AgencySize,
+    contactEmail: '',
+    contactPhone: '',
+    website: '',
+    status: 'pending',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      country: 'United Kingdom'
+    },
+    primaryContact: {
+      name: '',
+      email: '',
+      phone: '',
+      position: ''
+    },
+    specializations: []
+  })
 
   useEffect(() => {
     const loadAgency = async () => {
       try {
         setLoading(true)
         const data = await getAgency(id)
-        setFormData(data)
+        // Transform the data to match UpdateAgencyRequest type
+        const transformedData: UpdateAgencyRequest = {
+          name: data.name || '',
+          description: data.description || '',
+          industry: data.industry || '',
+          size: data.size || 'SMALL',
+          contactEmail: data.contactEmail || '',
+          contactPhone: data.contactPhone || '',
+          website: data.website || '',
+          status: data.status || 'pending',
+          address: {
+            street: data.address?.street || '',
+            city: data.address?.city || '',
+            state: data.address?.state || '',
+            postalCode: data.address?.postal_code || '',
+            country: data.address?.country || 'United Kingdom'
+          },
+          primaryContact: {
+            name: data.primaryContact?.name || '',
+            email: data.primaryContact?.email || '',
+            phone: data.primaryContact?.phone || '',
+            position: data.primaryContact?.position || ''
+          },
+          specializations: data.specializations || []
+        }
+        setFormData(transformedData)
       } catch (err) {
         console.error('Error loading agency:', err)
         setError('Failed to load agency details')
@@ -39,9 +89,34 @@ function EditAgencyContent({ id }: { id: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.address) {
+      setError('Address information is required')
+      return
+    }
+    if (!formData.primaryContact) {
+      setError('Primary contact information is required')
+      return
+    }
     try {
       setSaving(true)
-      await updateAgency(id, formData)
+      // Transform the data back to match the API's expected format
+      const apiData: UpdateAgencyRequest = {
+        ...formData,
+        address: {
+          street: formData.address.street,
+          city: formData.address.city,
+          state: formData.address.state,
+          postalCode: formData.address.postalCode,
+          country: formData.address.country
+        },
+        primaryContact: {
+          name: formData.primaryContact.name,
+          email: formData.primaryContact.email,
+          phone: formData.primaryContact.phone,
+          position: formData.primaryContact.position
+        }
+      }
+      await updateAgency(id, apiData)
       router.push(`/agencies/${id}`)
     } catch (err) {
       console.error('Error updating agency:', err)
@@ -51,21 +126,23 @@ function EditAgencyContent({ id }: { id: string }) {
     }
   }
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = (field: keyof UpdateAgencyRequest, value: FormValue) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
-  const handleNestedChange = (parent: string, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent as keyof Agency],
-        [field]: value
-      }
-    }))
+  const handleNestedChange = (parent: keyof UpdateAgencyRequest, field: string, value: FormValue) => {
+    if (parent === 'address' || parent === 'primaryContact') {
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...((prev[parent] ?? {}) as unknown as Record<string, FormValue>),
+          [field]: value
+        }
+      }))
+    }
   }
 
   if (loading) {
@@ -176,9 +253,9 @@ function EditAgencyContent({ id }: { id: string }) {
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Small">Small</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Large">Large</SelectItem>
+                    <SelectItem value="SMALL">Small</SelectItem>
+                    <SelectItem value="MEDIUM">Medium</SelectItem>
+                    <SelectItem value="LARGE">Large</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

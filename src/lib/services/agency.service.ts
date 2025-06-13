@@ -4,7 +4,6 @@ import {
   CreateAgencyRequest, 
   UpdateAgencyRequest, 
   AgencyFilters,
-  ApiResponse,
   PaginatedResponse,
   AgencyUser,
   AgencyBranding,
@@ -391,7 +390,7 @@ class AgencyService {
   }
 
   // Get agency revenue data
-  async getAgencyRevenue(id: string, period: 'month' | 'quarter' | 'year' = 'month'): Promise<any> {
+  async getAgencyRevenue(id: string, period: 'month' | 'quarter' | 'year' = 'month'): Promise<unknown> {
     try {
       console.log(`🔍 Fetching revenue data for agency ${id} (${period})`)
       

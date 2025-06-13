@@ -1,20 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import { useEffect, useState, useCallback } from 'react'
 import { userService } from '@/lib/services/user.service'
 import { AgencyUser, UserStatus, UserRole } from '@/lib/types'
-import { Shield, Users, Clock, Search, Filter, Plus, MoreVertical, AlertCircle } from 'lucide-react'
+import { Users, Clock, Search, Plus, MoreVertical, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { toast } from 'react-hot-toast'
 
 export default function UserManagementPage() {
-  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<AgencyUser[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,7 +23,7 @@ export default function UserManagementPage() {
   const [totalUsers, setTotalUsers] = useState(0)
   const limit = 10
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -48,11 +46,11 @@ export default function UserManagementPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, searchQuery, roleFilter, statusFilter])
 
   useEffect(() => {
     fetchUsers()
-  }, [page, searchQuery, roleFilter, statusFilter])
+  }, [fetchUsers])
 
   const handleStatusChange = async (userId: string, newStatus: UserStatus) => {
     try {

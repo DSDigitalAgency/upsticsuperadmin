@@ -88,7 +88,7 @@ export interface Agency {
     plan: AgencyPlan
     amount: number
     currency: string
-    invoices: any[] // TODO: Define invoice type
+    invoices: unknown[] // TODO: Define invoice type
   }
   features: {
     enabledFeatures: string[]
@@ -191,7 +191,7 @@ export interface DashboardMetrics {
     action: string;
     description: string;
     timestamp: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }[];
 }
 
@@ -279,7 +279,7 @@ export interface SecurityEvent {
   userEmail?: string;
   ipAddress?: string;
   userAgent?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

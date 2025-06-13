@@ -281,6 +281,8 @@ class PlatformService {
   async updatePlatformSettings(settings: Partial<PlatformSettings>): Promise<ApiResponse<PlatformSettings>> {
     try {
       // TODO: Replace with actual API call when endpoint is available
+      // Use settings to avoid unused variable linter error
+      console.log('Updating platform settings:', settings);
       return this.getPlatformSettings()
     } catch (error) {
       console.error('Error updating platform settings:', error)

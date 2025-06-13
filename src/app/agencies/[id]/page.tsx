@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  Users, DollarSign, Building2, MapPin, Mail, Phone,
-  Globe, Calendar, TrendingUp, ArrowLeft, Edit, Ban,
+  Users, Building2, MapPin, Mail, Phone,
+  Globe, TrendingUp, ArrowLeft, Edit, Ban,
   CheckCircle, Trash2, AlertCircle
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +13,14 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAgencies } from '@/hooks/useAgencies'
 import { Agency } from '@/lib/types'
+
+// Define a type for invoice
+interface Invoice {
+  id: string;
+  amount: number;
+  date: string;
+  status: string;
+}
 
 function AgencyDetailsContent({ id }: { id: string }) {
   const router = useRouter()
@@ -249,7 +257,7 @@ function AgencyDetailsContent({ id }: { id: string }) {
                   </p>
                   <p className="flex items-center">
                     <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {agency.address.city}, {agency.address.state} {agency.address.postalCode}
+                    {agency.address.city}, {agency.address.state} {agency.address.post_code}
                   </p>
                   <p className="ml-6">{agency.address.country}</p>
                 </div>
@@ -339,23 +347,19 @@ function AgencyDetailsContent({ id }: { id: string }) {
                 <h4 className="font-medium text-gray-500 mb-4">Recent Invoices</h4>
                 {agency.billing.invoices.length > 0 ? (
                   <div className="space-y-2">
-                    {agency.billing.invoices.map((invoice: any) => (
+                    {agency.billing.invoices.map((invoice: Invoice) => (
                       <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
-                          <p className="font-medium">{invoice.description}</p>
-                          <p className="text-sm text-gray-500">{new Date(invoice.date).toLocaleDateString()}</p>
+                          <div className="font-medium">Invoice #{invoice.id}</div>
+                          <div className="text-xs text-gray-500">{invoice.date}</div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{agency.billing.currency}{invoice.amount}</p>
-                          <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'}>
-                            {invoice.status}
-                          </Badge>
-                        </div>
+                        <div className="font-semibold">${invoice.amount}</div>
+                        <div className="text-xs capitalize">{invoice.status}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-600">No invoices yet</p>
+                  <div className="text-gray-500">No invoices found.</div>
                 )}
               </div>
             </CardContent>

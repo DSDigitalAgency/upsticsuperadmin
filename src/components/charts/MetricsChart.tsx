@@ -1,6 +1,6 @@
 'use client'
 
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { DashboardMetrics } from '@/lib/types'
 
 interface MetricsChartProps {
@@ -46,7 +46,7 @@ export function MetricsChart({ metrics }: MetricsChartProps) {
     }
   ]
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: unknown[]; label?: string }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload
       return (

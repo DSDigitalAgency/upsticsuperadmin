@@ -8,13 +8,10 @@ import {
   DollarSign, 
   Activity,
   TrendingUp,
-  CheckCircle,
   RefreshCw,
   AlertCircle,
   PieChart,
-  UserCheck,
-  Clock,
-  AlertTriangle
+  UserCheck
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useDashboard } from '@/hooks/useDashboard'
