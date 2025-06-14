@@ -285,31 +285,40 @@ export interface SecurityEvent {
 }
 
 export interface SecurityDashboard {
-  score: number;
-  totalEvents: number;
-  criticalEvents: number;
-  highSeverityEvents: number;
-  mediumSeverityEvents: number;
-  lowSeverityEvents: number;
-  recentEvents: SecurityEvent[];
-  systemStatus: {
-    twoFactorEnabled: boolean;
-    passwordPolicy: {
-      minLength: number;
-      requireUppercase: boolean;
-      requireLowercase: boolean;
-      requireNumbers: boolean;
-      requireSpecialChars: boolean;
-      maxAge: number;
-    };
-    sessionPolicy: {
-      maxConcurrentSessions: number;
-      sessionTimeout: number;
-      requireReauth: boolean;
-    };
-    ipWhitelist: string[];
-    lastSecurityAudit: string;
+  securityScore: {
+    overall: number;
+    authentication: number;
+    dataProtection: number;
+    apiSecurity: number;
+    userSecurity: number;
+    systemSecurity: number;
+    lastUpdated: string;
+    _id: string;
   };
+  activeEvents: number;
+  severityDistribution: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
+  typeDistribution: {
+    login_failure: number;
+    suspicious_access: number;
+    permission_violation: number;
+    rate_limit_exceeded: number;
+    password_change: number;
+    api_key_created: number;
+    api_key_deleted: number;
+    user_locked: number;
+    admin_action: number;
+    system_alert: number;
+  };
+  recentEvents: SecurityEvent[];
+  eventsTrend: Array<{
+    date: string;
+    count: number;
+  }>;
 }
 
 export interface SecuritySystem {
@@ -381,6 +390,14 @@ export interface PaginatedResponse<T> {
   }
 }
 
+// Audit-specific response type for the actual API structure
+export interface AuditLogsResponse {
+  logs: AuditLog[]
+  total: number
+  page: string
+  limit: string
+}
+
 export interface AgencyBranding {
   logo_url?: string
   primary_color?: string
@@ -411,4 +428,64 @@ export type AgencyFeature =
   | 'multi_currency'
   | 'multi_language'
   | 'sso'
-  | 'audit_logs' 
+  | 'audit_logs'
+
+// Audit Log Types
+export interface AuditLog {
+  id: string;
+  userId?: string;
+  userEmail?: string;
+  userRole?: string;
+  actionType: string;
+  entityType: string;
+  entityId?: string;
+  details?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+  timestamp: string;
+  before?: Record<string, unknown>;
+  after?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuditLogStats {
+  totalLogs: number;
+  actionTypeDistribution: {
+    [key: string]: number;
+  };
+  entityTypeDistribution: {
+    [key: string]: number;
+  };
+  userActivityDistribution: {
+    [key: string]: number;
+  };
+  recentActivity: AuditLog[];
+}
+
+export interface AuditLogFilters {
+  userId?: string;
+  userEmail?: string;
+  userRole?: string;
+  actionType?: string;
+  entityType?: string;
+  entityId?: string;
+  ipAddress?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface AuditActionType {
+  value: string;
+  label: string;
+  description?: string;
+}
+
+export interface AuditEntityType {
+  value: string;
+  label: string;
+  description?: string;
+} 

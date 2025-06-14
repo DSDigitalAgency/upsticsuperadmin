@@ -11,7 +11,8 @@ import {
   Menu,
   LogOut,
   User,
-  ChevronLeft
+  ChevronLeft,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
@@ -56,6 +57,7 @@ export default function SuperAdminLayout({ children }: SuperAdminLayoutProps) {
     { name: 'User Management', href: '/users', icon: Users },
     { name: 'Platform Settings', href: '/settings', icon: Settings },
     { name: 'Security & Monitoring', href: '/security', icon: Shield },
+    { name: 'Audit Logs', href: '/audit-logs', icon: FileText },
   ]
 
   return (

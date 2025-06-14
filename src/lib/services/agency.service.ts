@@ -64,47 +64,55 @@ class AgencyService {
 
       const url = `${API_BASE_URL}/admin/agencies${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
       
-      console.log('🔍 Fetching agencies with filters:', {
-        search: filters?.search,
-        status: filters?.status,
-        industry: filters?.industry,
-        specialization: filters?.specialization,
-        size: filters?.size,
-        page: filters?.page,
-        limit: filters?.limit
-      })
+      console.log('🔍 Fetching agencies with URL:', url)
+      console.log('🔍 Headers:', this.getAuthHeaders())
       
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: this.getAuthHeaders(),
-      })
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+        })
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch agencies: ${response.status} ${response.statusText}`)
-      }
-
-      const responseData = await response.json()
-      
-      // Handle the actual API response format
-      const paginatedResponse: PaginatedResponse<Agency> = {
-        data: responseData.agencies || [],
-        meta: {
-          current_page: filters?.page || 1,
-          total_pages: Math.ceil((responseData.total || 0) / (filters?.limit || 10)),
-          total_items: responseData.total || 0,
-          items_per_page: filters?.limit || 10
+        if (!response.ok) {
+          const errorText = await response.text()
+          console.error('API Error Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          })
+          throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`)
         }
-      }
 
-      console.log('✅ Agencies data received:', {
-        total: paginatedResponse.meta.total_items,
-        page: paginatedResponse.meta.current_page,
-        totalPages: paginatedResponse.meta.total_pages,
-        itemsPerPage: paginatedResponse.meta.items_per_page,
-        agenciesCount: paginatedResponse.data.length
-      })
-      
-      return paginatedResponse
+        const responseData = await response.json()
+        
+        // Handle the actual API response format
+        const paginatedResponse: PaginatedResponse<Agency> = {
+          data: responseData.agencies || [],
+          meta: {
+            current_page: filters?.page || 1,
+            total_pages: Math.ceil((responseData.total || 0) / (filters?.limit || 10)),
+            total_items: responseData.total || 0,
+            items_per_page: filters?.limit || 10
+          }
+        }
+
+        console.log('✅ Agencies data received:', {
+          total: paginatedResponse.meta.total_items,
+          page: paginatedResponse.meta.current_page,
+          totalPages: paginatedResponse.meta.total_pages,
+          itemsPerPage: paginatedResponse.meta.items_per_page,
+          agenciesCount: paginatedResponse.data.length
+        })
+        
+        return paginatedResponse
+      } catch (fetchError) {
+        console.error('Network Error:', {
+          url,
+          error: fetchError,
+          message: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        })
+        throw new Error(`Network Error: ${fetchError instanceof Error ? fetchError.message : 'Failed to connect to API'}`)
+      }
     } catch (error) {
       console.error('❌ Error fetching agencies:', error)
       throw error

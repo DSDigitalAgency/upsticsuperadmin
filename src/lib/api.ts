@@ -11,10 +11,15 @@ interface ErrorResponse {
 class ApiClient {
   private client: ReturnType<typeof axios.create>
   private baseURL: string
+  private isDevelopment: boolean
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://api.upstic.com/api'
-    console.log('API Base URL:', this.baseURL)
+    this.isDevelopment = process.env.NODE_ENV === 'development'
+    
+    if (this.isDevelopment) {
+      console.log('API Base URL:', this.baseURL)
+    }
 
     this.client = axios.create({
       baseURL: this.baseURL,
@@ -32,16 +37,20 @@ class ApiClient {
         if (token && config.headers) {
           config.headers.Authorization = `Bearer ${token}`
         }
-        console.log('API Request:', {
-          method: config.method,
-          url: config.url,
-          headers: config.headers,
-          data: config.data
-        })
+        
+        // Only log in development and for non-routine requests
+        if (this.isDevelopment && this.shouldLogRequest(config.url || '')) {
+          console.log('API Request:', {
+            method: config.method?.toUpperCase(),
+            url: config.url
+          })
+        }
         return config
       },
       (error: AxiosError) => {
-        console.error('API Request Error:', error)
+        if (this.isDevelopment) {
+          console.error('API Request Error:', error.message)
+        }
         return Promise.reject(error)
       }
     )
@@ -49,22 +58,41 @@ class ApiClient {
     // Response interceptor
     this.client.interceptors.response.use(
       (response) => {
-        console.log('API Response:', {
-          status: response.status,
-          data: response.data,
-          headers: response.headers
-        })
+        // Only log successful responses in development for important endpoints
+        if (this.isDevelopment && this.shouldLogRequest(response.config.url || '')) {
+          console.log('API Response:', {
+            status: response.status,
+            url: response.config.url
+          })
+        }
         return response
       },
       (error: AxiosError) => {
-        console.error('API Response Error:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: error.message
-        })
+        // Only log actual errors, not timeouts during development
+        if (this.isDevelopment && !this.isExpectedError(error)) {
+          console.warn('API Error:', {
+            status: error.response?.status,
+            message: error.message,
+            url: error.config?.url
+          })
+        }
         return Promise.reject(error)
       }
     )
+  }
+
+  private shouldLogRequest(url: string): boolean {
+    // Don't log routine polling requests to reduce noise
+    const routineEndpoints = ['/api/admin/security/dashboard', '/api/admin/security/events']
+    return !routineEndpoints.some(endpoint => url.includes(endpoint))
+  }
+
+  private isExpectedError(error: AxiosError): boolean {
+    // Consider timeouts and connection errors as expected during development
+    return error.code === 'ECONNABORTED' || 
+           error.code === 'ECONNREFUSED' || 
+           error.message.includes('timeout') ||
+           error.message.includes('Network Error')
   }
 
   private handleError(error: AxiosError): ErrorResponse {
@@ -86,7 +114,10 @@ class ApiClient {
       }
     } catch (error) {
       const axiosError = error as AxiosError
-      console.error(`GET ${url} failed:`, axiosError)
+      // Only log unexpected errors in development
+      if (this.isDevelopment && !this.isExpectedError(axiosError)) {
+        console.error(`GET ${url} failed:`, axiosError.message)
+      }
       throw this.handleError(axiosError)
     }
   }
@@ -101,7 +132,9 @@ class ApiClient {
       }
     } catch (error) {
       const axiosError = error as AxiosError
-      console.error(`POST ${url} failed:`, axiosError)
+      if (this.isDevelopment && !this.isExpectedError(axiosError)) {
+        console.error(`POST ${url} failed:`, axiosError.message)
+      }
       throw this.handleError(axiosError)
     }
   }
@@ -116,7 +149,9 @@ class ApiClient {
       }
     } catch (error) {
       const axiosError = error as AxiosError
-      console.error(`PUT ${url} failed:`, axiosError)
+      if (this.isDevelopment && !this.isExpectedError(axiosError)) {
+        console.error(`PUT ${url} failed:`, axiosError.message)
+      }
       throw this.handleError(axiosError)
     }
   }
@@ -131,7 +166,9 @@ class ApiClient {
       }
     } catch (error) {
       const axiosError = error as AxiosError
-      console.error(`PATCH ${url} failed:`, axiosError)
+      if (this.isDevelopment && !this.isExpectedError(axiosError)) {
+        console.error(`PATCH ${url} failed:`, axiosError.message)
+      }
       throw this.handleError(axiosError)
     }
   }
@@ -146,7 +183,9 @@ class ApiClient {
       }
     } catch (error) {
       const axiosError = error as AxiosError
-      console.error(`DELETE ${url} failed:`, axiosError)
+      if (this.isDevelopment && !this.isExpectedError(axiosError)) {
+        console.error(`DELETE ${url} failed:`, axiosError.message)
+      }
       throw this.handleError(axiosError)
     }
   }

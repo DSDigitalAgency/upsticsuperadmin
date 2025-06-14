@@ -1,17 +1,34 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, Shield, Zap, RefreshCw, Users, Save, AlertCircle } from 'lucide-react'
+import { Settings, Shield, Zap, RefreshCw, Save, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-hot-toast'
-import { platformService, type FeatureToggle, type PlatformMetrics, type PlatformSettings, type SecuritySystem } from '@/lib/services/platform.service'
+import { platformService, type PlatformMetrics, type PlatformSettings } from '@/lib/services/platform.service'
+import { SecuritySystem } from '@/lib/types'
 
 export default function PlatformSettingsPage() {
   const [metrics, setMetrics] = useState<PlatformMetrics | null>(null)
-  const [features, setFeatures] = useState<FeatureToggle[]>([])
   const [settings, setSettings] = useState<PlatformSettings | null>(null)
-  const [security, setSecurity] = useState<SecuritySystem | null>(null)
+  const [security, setSecurity] = useState<SecuritySystem | null>({
+    twoFactorEnabled: false,
+    passwordPolicy: {
+      minLength: 8,
+      requireUppercase: true,
+      requireLowercase: true,
+      requireNumbers: true,
+      requireSpecialChars: true,
+      maxAge: 90
+    },
+    sessionPolicy: {
+      maxConcurrentSessions: 3,
+      sessionTimeout: 30,
+      requireReauth: false
+    },
+    ipWhitelist: [],
+    lastSecurityAudit: new Date().toISOString()
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,11 +46,6 @@ export default function PlatformSettingsPage() {
       console.log('Metrics response:', metricsRes)
       setMetrics(metricsRes.data)
 
-      console.log('Fetching features...')
-      const featuresRes = await platformService.getFeatures()
-      console.log('Features response:', featuresRes)
-      setFeatures(featuresRes.data)
-
       console.log('Fetching platform settings...')
       const settingsRes = await platformService.getPlatformSettings()
       console.log('Settings response:', settingsRes)
@@ -42,7 +54,41 @@ export default function PlatformSettingsPage() {
       console.log('Fetching security system...')
       const securityRes = await platformService.getSecuritySystem()
       console.log('Security response:', securityRes)
-      setSecurity(securityRes.data)
+      setSecurity(securityRes.data ? {
+        twoFactorEnabled: securityRes.data.twoFactorEnabled ?? false,
+        passwordPolicy: {
+          minLength: securityRes.data.passwordPolicy?.minLength ?? 8,
+          requireUppercase: securityRes.data.passwordPolicy?.requireUppercase ?? true,
+          requireLowercase: securityRes.data.passwordPolicy?.requireLowercase ?? true,
+          requireNumbers: securityRes.data.passwordPolicy?.requireNumbers ?? true,
+          requireSpecialChars: securityRes.data.passwordPolicy?.requireSpecialChars ?? true,
+          maxAge: securityRes.data.passwordPolicy?.maxAge ?? 90
+        },
+        sessionPolicy: {
+          maxConcurrentSessions: securityRes.data.sessionPolicy?.maxConcurrentSessions ?? 3,
+          sessionTimeout: securityRes.data.sessionPolicy?.sessionTimeout ?? 30,
+          requireReauth: securityRes.data.sessionPolicy?.requireReauth ?? false
+        },
+        ipWhitelist: securityRes.data.ipWhitelist ?? [],
+        lastSecurityAudit: securityRes.data.lastSecurityAudit ?? new Date().toISOString()
+      } : {
+        twoFactorEnabled: false,
+        passwordPolicy: {
+          minLength: 8,
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumbers: true,
+          requireSpecialChars: true,
+          maxAge: 90
+        },
+        sessionPolicy: {
+          maxConcurrentSessions: 3,
+          sessionTimeout: 30,
+          requireReauth: false
+        },
+        ipWhitelist: [],
+        lastSecurityAudit: new Date().toISOString()
+      })
     } catch (err) {
       console.error('Error fetching platform data:', err)
       if (err instanceof Error) {
@@ -54,19 +100,26 @@ export default function PlatformSettingsPage() {
       }
       setError('Failed to load platform settings. Please check the console for details.')
       toast.error('Failed to load platform settings')
+      setSecurity({
+        twoFactorEnabled: false,
+        passwordPolicy: {
+          minLength: 8,
+          requireUppercase: true,
+          requireLowercase: true,
+          requireNumbers: true,
+          requireSpecialChars: true,
+          maxAge: 90
+        },
+        sessionPolicy: {
+          maxConcurrentSessions: 3,
+          sessionTimeout: 30,
+          requireReauth: false
+        },
+        ipWhitelist: [],
+        lastSecurityAudit: new Date().toISOString()
+      })
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleFeatureToggle = async (featureId: string, enabled: boolean) => {
-    try {
-      await platformService.updateFeature(featureId, { enabled })
-      toast.success('Feature updated successfully')
-      fetchData() // Refresh data
-    } catch (err) {
-      console.error('Error updating feature:', err)
-      toast.error('Failed to update feature')
     }
   }
 
@@ -94,6 +147,8 @@ export default function PlatformSettingsPage() {
     }
   }
 
+
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -116,7 +171,7 @@ export default function PlatformSettingsPage() {
   }
 
   return (
-    <div>
+    <div className="container mx-auto py-6 space-y-6">
       {/* Page Header */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
@@ -213,37 +268,7 @@ export default function PlatformSettingsPage() {
         {/* Settings Sections */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           
-          {/* Feature Toggles */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Feature Toggles</CardTitle>
-              <p className="text-sm text-gray-600">Enable or disable platform features</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {features.map((feature) => (
-                  <div key={feature.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <div className="flex items-center space-x-3">
-                      <Users className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">{feature.name}</p>
-                        <p className="text-sm text-gray-600">{feature.description}</p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer" 
-                        checked={feature.enabled}
-                        onChange={(e) => handleFeatureToggle(feature.id, e.target.checked)}
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Global Settings */}
           {settings && (
@@ -355,8 +380,8 @@ export default function PlatformSettingsPage() {
                       <input 
                         type="checkbox" 
                         className="sr-only peer" 
-                        checked={security.twoFactorAuth}
-                        onChange={(e) => setSecurity({ ...security, twoFactorAuth: e.target.checked })}
+                        checked={security.twoFactorEnabled}
+                        onChange={(e) => setSecurity({ ...security, twoFactorEnabled: e.target.checked })}
                       />
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                     </label>
@@ -447,8 +472,14 @@ export default function PlatformSettingsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
                     <input 
                       type="number" 
-                      value={security.sessionTimeout}
-                      onChange={(e) => setSecurity({ ...security, sessionTimeout: parseInt(e.target.value) })}
+                      value={security.sessionPolicy.sessionTimeout}
+                      onChange={(e) => setSecurity({ 
+                        ...security, 
+                        sessionPolicy: {
+                          ...security.sessionPolicy,
+                          sessionTimeout: parseInt(e.target.value)
+                        }
+                      })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                     />
                   </div>
@@ -460,16 +491,6 @@ export default function PlatformSettingsPage() {
                       onChange={(e) => setSecurity({ ...security, ipWhitelist: e.target.value.split('\n').filter(ip => ip.trim()) })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24" 
                       placeholder="Enter IP addresses..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Allowed Email Domains (one per line)</label>
-                    <textarea 
-                      value={security.allowedDomains.join('\n')}
-                      onChange={(e) => setSecurity({ ...security, allowedDomains: e.target.value.split('\n').filter(domain => domain.trim()) })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent h-24" 
-                      placeholder="Enter email domains..."
                     />
                   </div>
 

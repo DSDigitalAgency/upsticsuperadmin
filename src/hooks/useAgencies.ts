@@ -386,13 +386,11 @@ export const useAgencies = () => {
 
   // Filter management - simplified
   const updateFilters = useCallback((newFilters: Partial<AgencyFilters>) => {
-    setState(prev => {
-      const updatedFilters = { ...prev.filters, ...newFilters, page: 1 }
-      // Load agencies with new filters asynchronously to avoid state update conflicts
-      Promise.resolve().then(() => loadAgencies(updatedFilters))
-      return prev // Return previous state, loadAgencies will update it
-    })
-  }, [loadAgencies])
+    setState(prev => ({
+      ...prev,
+      filters: { ...prev.filters, ...newFilters, page: 1 }
+    }))
+  }, [])
 
   const resetFilters = useCallback(() => {
     const defaultFilters: AgencyFilters = {

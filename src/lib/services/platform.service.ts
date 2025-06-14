@@ -1,5 +1,5 @@
 import { apiClient } from '../api'
-import { ApiResponse } from '../types'
+import { ApiResponse, SecuritySystem } from '../types'
 
 export interface FeatureToggle {
   id: string
@@ -8,20 +8,18 @@ export interface FeatureToggle {
   enabled: boolean
   createdAt: string
   updatedAt: string
+  feature_key?: string
 }
 
-export interface SecuritySystem {
-  twoFactorAuth: boolean
-  passwordPolicy: {
-    minLength: number
-    requireNumbers: boolean
-    requireSpecialChars: boolean
-    requireUppercase: boolean
-    requireLowercase: boolean
-  }
-  sessionTimeout: number
-  ipWhitelist: string[]
-  allowedDomains: string[]
+export interface FeatureToggleStats {
+  total_features: number
+  enabled_features: number
+  disabled_features: number
+  features_by_agency: Array<{
+    agency_id: string
+    agency_name: string
+    enabled_features: number
+  }>
 }
 
 export interface PlatformMetrics {
@@ -50,13 +48,8 @@ class PlatformService {
   // Feature Management
   async getFeatures(): Promise<ApiResponse<FeatureToggle[]>> {
     try {
-      console.log('Calling getFeatures API...')
-      const response = await apiClient.get('/admin/features')
-      console.log('Raw getFeatures response:', response)
-      
-      // Ensure we have a valid response structure
+      const response = await apiClient.get<FeatureToggle[]>('/admin/features')
       if (!response || !response.data) {
-        console.log('API not available, returning mock data')
         // Return mock data when API is not available
         return {
           data: [
@@ -65,6 +58,7 @@ class PlatformService {
               name: 'User Management',
               description: 'Manage user accounts and permissions',
               enabled: true,
+              feature_key: 'user_management',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             },
@@ -73,6 +67,7 @@ class PlatformService {
               name: 'Analytics Dashboard',
               description: 'View platform analytics and metrics',
               enabled: true,
+              feature_key: 'analytics_dashboard',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             },
@@ -81,6 +76,7 @@ class PlatformService {
               name: 'API Access',
               description: 'Enable API access for integrations',
               enabled: false,
+              feature_key: 'api_access',
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString()
             }
@@ -89,54 +85,54 @@ class PlatformService {
           success: true
         }
       }
-
-      // If the response data is not an array, wrap it in an array
-      const features = Array.isArray(response.data) ? response.data : [response.data]
-      
-      return {
-        data: features,
-        status: response.status || 200,
-        success: response.success ?? true
-      }
+      return response
     } catch (error) {
       console.error('Error fetching features:', error)
-      // Return mock data on error
-      return {
-        data: [
-          {
-            id: 'feature-1',
-            name: 'User Management',
-            description: 'Manage user accounts and permissions',
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'feature-2',
-            name: 'Analytics Dashboard',
-            description: 'View platform analytics and metrics',
-            enabled: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          },
-          {
-            id: 'feature-3',
-            name: 'API Access',
-            description: 'Enable API access for integrations',
-            enabled: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ],
-        status: 200,
-        success: true
-      }
+      throw error
     }
   }
 
-  async createFeature(feature: Partial<FeatureToggle>): Promise<ApiResponse<FeatureToggle>> {
+  async getFeatureStats(): Promise<ApiResponse<FeatureToggleStats>> {
     try {
-      return await apiClient.post('/admin/features', feature)
+      const response = await apiClient.get<FeatureToggleStats>('/admin/features/stats')
+      if (!response || !response.data) {
+        // Return mock data when API is not available
+        return {
+          data: {
+            total_features: 3,
+            enabled_features: 2,
+            disabled_features: 1,
+            features_by_agency: [
+              {
+                agency_id: 'agency-1',
+                agency_name: 'Demo Agency',
+                enabled_features: 2
+              }
+            ]
+          },
+          status: 200,
+          success: true
+        }
+      }
+      return response
+    } catch (error) {
+      console.error('Error fetching feature stats:', error)
+      throw error
+    }
+  }
+
+  async getFeatureById(id: string): Promise<ApiResponse<FeatureToggle>> {
+    try {
+      return await apiClient.get<FeatureToggle>(`/admin/features/${id}`)
+    } catch (error) {
+      console.error(`Error fetching feature ${id}:`, error)
+      throw error
+    }
+  }
+
+  async createFeature(feature: Omit<FeatureToggle, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<FeatureToggle>> {
+    try {
+      return await apiClient.post<FeatureToggle>('/admin/features', feature)
     } catch (error) {
       console.error('Error creating feature:', error)
       throw error
@@ -145,9 +141,9 @@ class PlatformService {
 
   async updateFeature(id: string, feature: Partial<FeatureToggle>): Promise<ApiResponse<FeatureToggle>> {
     try {
-      return await apiClient.put(`/admin/features/${id}`, feature)
+      return await apiClient.put<FeatureToggle>(`/admin/features/${id}`, feature)
     } catch (error) {
-      console.error('Error updating feature:', error)
+      console.error(`Error updating feature ${id}:`, error)
       throw error
     }
   }
@@ -156,7 +152,16 @@ class PlatformService {
     try {
       return await apiClient.delete(`/admin/features/${id}`)
     } catch (error) {
-      console.error('Error deleting feature:', error)
+      console.error(`Error deleting feature ${id}:`, error)
+      throw error
+    }
+  }
+
+  async toggleFeatureForAgency(featureId: string, agencyId: string, enabled: boolean): Promise<ApiResponse<void>> {
+    try {
+      return await apiClient.put(`/admin/features/${featureId}/agency`, { agencyId, enabled })
+    } catch (error) {
+      console.error(`Error toggling feature ${featureId} for agency ${agencyId}:`, error)
       throw error
     }
   }

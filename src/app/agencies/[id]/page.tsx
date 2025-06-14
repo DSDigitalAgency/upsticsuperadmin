@@ -257,7 +257,7 @@ function AgencyDetailsContent({ id }: { id: string }) {
                   </p>
                   <p className="flex items-center">
                     <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                    {agency.address.city}, {agency.address.state} {agency.address.post_code}
+                    {agency.address.city}, {agency.address.state} {agency.address.postal_code}
                   </p>
                   <p className="ml-6">{agency.address.country}</p>
                 </div>
@@ -336,18 +336,18 @@ function AgencyDetailsContent({ id }: { id: string }) {
                 <div>
                   <h4 className="font-medium text-gray-500 mb-1">Trial Status</h4>
                   <p className="text-2xl font-semibold">
-                    {agency.trialDetails.isConverted ? 'Converted' : 'Trial'}
+                    {agency.trial.isConverted ? 'Converted' : 'Trial'}
                   </p>
                   <p className="text-sm text-gray-500">
-                    Until {new Date(agency.trialDetails.endDate).toLocaleDateString()}
+                    Until {new Date(agency.trial.endDate).toLocaleDateString()}
                   </p>
                 </div>
               </div>
               <div>
                 <h4 className="font-medium text-gray-500 mb-4">Recent Invoices</h4>
-                {agency.billing.invoices.length > 0 ? (
+                {Array.isArray(agency.billing.invoices) && agency.billing.invoices.length > 0 ? (
                   <div className="space-y-2">
-                    {agency.billing.invoices.map((invoice: Invoice) => (
+                    {(agency.billing.invoices as Invoice[]).map((invoice: Invoice) => (
                       <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                         <div>
                           <div className="font-medium">Invoice #{invoice.id}</div>

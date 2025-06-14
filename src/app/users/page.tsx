@@ -37,12 +37,14 @@ export default function UserManagementPage() {
       }
 
       const response = await userService.getUsers(params)
-      setUsers(response.data.users)
-      setTotalUsers(response.data.total)
+      setUsers(response.data.users || [])
+      setTotalUsers(response.data.total || 0)
     } catch (err) {
       console.error('Error fetching users:', err)
       setError('Failed to load users. Please try again.')
       toast.error('Failed to load users')
+      setUsers([])
+      setTotalUsers(0)
     } finally {
       setIsLoading(false)
     }
