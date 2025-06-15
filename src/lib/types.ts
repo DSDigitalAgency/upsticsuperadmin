@@ -112,7 +112,7 @@ export interface AgencyStats {
   by_size: Record<string, number>
 }
 
-export type AgencySize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'ENTERPRISE'
+export type AgencySize = 'Small' | 'Medium' | 'Large'
 export type AgencyStatus = 'active' | 'inactive' | 'pending' | 'suspended'
 export type AgencyPlan = 'BASIC' | 'PRO' | 'ENTERPRISE' | 'CUSTOM'
 
@@ -143,6 +143,9 @@ export interface CreateAgencyRequest {
   address: AgencyAddress
   primaryContact: AgencyContact
   specializations: string[]
+  plan?: AgencyPlan
+  planPrice?: number
+  features?: string[]
 }
 
 export interface UpdateAgencyRequest extends Partial<CreateAgencyRequest> {

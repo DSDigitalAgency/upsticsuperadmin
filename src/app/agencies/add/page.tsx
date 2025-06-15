@@ -31,7 +31,10 @@ export default function AddAgencyPage() {
       phone: '',
       position: ''
     },
-    specializations: []
+    specializations: [],
+    plan: 'BASIC',
+    planPrice: 0,
+    features: []
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -54,10 +57,11 @@ export default function AddAgencyPage() {
         return { ...prev, [name]: value }
       } else if (keys.length === 2) {
         const [parent, child] = keys
+        const parentObj = prev[parent as keyof typeof prev]
         return {
           ...prev,
           [parent]: {
-            ...prev[parent as keyof typeof prev],
+            ...(typeof parentObj === 'object' && parentObj !== null ? parentObj : {}),
             [child]: value
           }
         }
@@ -73,6 +77,25 @@ export default function AddAgencyPage() {
       specializations: value.split(',').map(s => s.trim()).filter(Boolean)
     }))
   }
+
+  const handleFeatureToggle = (feature: string) => {
+    setFormData(prev => ({
+      ...prev,
+      features: prev.features?.includes(feature)
+        ? prev.features.filter(f => f !== feature)
+        : [...(prev.features || []), feature]
+    }))
+  }
+
+  // Available features for selection
+  const availableFeatures = [
+    { id: 'recruitment', label: 'Recruitment Management', description: 'Candidate sourcing and management' },
+    { id: 'jobs', label: 'Job Management', description: 'Job posting and application tracking' },
+    { id: 'shifts', label: 'Shift Management', description: 'Schedule and manage work shifts' },
+    { id: 'timesheets', label: 'Timesheets', description: 'Time tracking and approval' },
+    { id: 'payroll', label: 'Payroll Management', description: 'Payroll processing and calculations' },
+    { id: 'compliance', label: 'Compliance Tracking', description: 'Document and certification management' }
+  ]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -179,10 +202,10 @@ export default function AddAgencyPage() {
                     required
                     className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
+                    <option value="">Select company size</option>
                     <option value="Small">Small (1-50 employees)</option>
                     <option value="Medium">Medium (51-200 employees)</option>
-                    <option value="Large">Large (201-1000 employees)</option>
-                    <option value="Enterprise">Enterprise (1000+ employees)</option>
+                    <option value="Large">Large (201+ employees)</option>
                   </select>
                 </div>
 
@@ -225,7 +248,74 @@ export default function AddAgencyPage() {
                   />
                   <p className="mt-1 text-sm text-gray-500">Enter specializations separated by commas</p>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subscription Plan
+                  </label>
+                  <select 
+                    name="plan"
+                    value={formData.plan || ''}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="">Select a plan</option>
+                    <option value="BASIC">Basic Plan - Essential features for small agencies</option>
+                    <option value="PRO">Pro Plan - Advanced features for growing agencies</option>
+                    <option value="ENTERPRISE">Enterprise Plan - Full feature set for large agencies</option>
+                    <option value="CUSTOM">Custom Plan - Tailored solution</option>
+                  </select>
+                  <p className="mt-1 text-sm text-gray-500">Choose the subscription plan for this agency</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Plan Price (Monthly)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2 text-gray-500">£</span>
+                    <input 
+                      type="number" 
+                      name="planPrice"
+                      value={formData.planPrice || ''}
+                      onChange={handleChange}
+                      min="0"
+                      step="0.01"
+                      placeholder="99.00"
+                      className="w-full border border-gray-300 rounded-md pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <p className="mt-1 text-sm text-gray-500">Enter the monthly subscription price in GBP</p>
+                </div>
               </div>
+            </div>
+
+            {/* Features Selection */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Features & Modules</h3>
+              <p className="text-sm text-gray-600 mb-4">Select the features and modules to enable for this agency</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availableFeatures.map((feature) => (
+                  <div key={feature.id} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                    <input
+                      type="checkbox"
+                      id={feature.id}
+                      checked={formData.features?.includes(feature.id) || false}
+                      onChange={() => handleFeatureToggle(feature.id)}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor={feature.id} className="block text-sm font-medium text-gray-900 cursor-pointer">
+                        {feature.label}
+                      </label>
+                      <p className="text-sm text-gray-500 mt-1">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-sm text-gray-500">
+                Selected features: {formData.features?.length || 0} of {availableFeatures.length}
+              </p>
             </div>
 
             {/* Contact Information */}

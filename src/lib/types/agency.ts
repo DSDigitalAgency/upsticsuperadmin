@@ -1,6 +1,6 @@
 export type AgencyStatus = 'active' | 'pending' | 'suspended' | 'inactive'
 export type AgencyPlan = 'BASIC' | 'PRO' | 'ENTERPRISE' | 'CUSTOM'
-export type AgencySize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'ENTERPRISE'
+export type AgencySize = 'Small' | 'Medium' | 'Large'
 
 export interface AgencyAddress {
   street: string
